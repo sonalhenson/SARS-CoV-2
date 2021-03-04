@@ -1,0 +1,5 @@
+Origin of files in here
+https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V3/nCoV-2019.reference.fasta
+https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V3/nCoV-2019.primers.fa 
+https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V3/nCoV-2019.primer.bed
+https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V3/pair_information.tsv
