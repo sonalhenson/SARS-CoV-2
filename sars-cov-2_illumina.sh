@@ -18,7 +18,7 @@ module list
 
 ## Required data files
 samplelist=$1 ## File with a list of sample IDs each on a new line
-BASEDIR=/home/shenson/SARS-CoV/ILRI_data
+BASEDIR=~/SARS-CoV/ILRI_data
 ref=${BASEDIR}/../db/nCoV-2019.reference.fasta
 primers_fa=${BASEDIR}/../db/nCoV-2019.primers.fa 
 primers_bed=${BASEDIR}/../db/nCoV-2019.primer.bed ## if already exists
