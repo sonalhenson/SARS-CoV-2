@@ -2,8 +2,8 @@
 #SBATCH -J SCV
 #SBATCH -n 10
 #SBATCH -p batch
-#SBATCH --output cookbook.o
-#SBATCH --error cookbook.e
+#SBATCH --output scv2.o
+#SBATCH --error scv2.e
 #SBATCH --mail-user s.henson@cgiar.org
 #SBATCH --mail-type ALL
 
@@ -20,8 +20,10 @@ module list
 samplelist=$1 ## File with a list of sample IDs each on a new line
 BASEDIR=~/SARS-CoV/ILRI_data
 ref=${BASEDIR}/../db/nCoV-2019.reference.fasta
+ref_gff=${BASEDIR}/../db/MN908947.3.gff3
 primers_fa=${BASEDIR}/../db/nCoV-2019.primers.fa 
 primers_bed=${BASEDIR}/../db/nCoV-2019.primer.bed ## if already exists
+ampl_bed=${BASEDIR}/../db/nCoV-2019.amplicons.bed
 
 while read sample;
 do
@@ -44,7 +46,7 @@ do
 	## --paired performs trimming in pair-aware manner
 	## --fastqc run fastqc after trimming
 	TRIM_START="$(date +%s)"
-	/home/shenson/soft/TrimGalore-0.6.6/trim_galore --paired -o $outdir --basename ${prefix} $R1 $R2
+	~/soft/TrimGalore-0.6.6/trim_galore --paired -o $outdir --basename ${prefix} $R1 $R2
 	TRIM_END="$(date +%s)"
 	echo "##### Trim_galore ran in $((TRIM_END-TRIM_START))s."
 
@@ -64,7 +66,7 @@ do
 	bwa mem -t 10 $ref ${prefix}_val_1.fq.gz ${prefix}_val_2.fq.gz | samtools view -b -F 4 -F 2048 | samtools sort -o ${prefix}.sorted.bam   
 	samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
 	## Get amplicon coverage
-	bedtools coverage -mean -a ~/SARS-CoV/artic-ncov2019/primer_schemes/V3/nCoV-2019.amplicons.bed -b ${prefix}.sorted.bam > ${prefix}.sorted.amplicon.cvrg
+	bedtools coverage -mean -a $ampl_bed -b ${prefix}.sorted.bam > ${prefix}.sorted.amplicon.cvrg
 	BWA_END="$(date +%s)"
 	echo "##### BWA ran in $((BWA_END-BWA_START))s."
 
@@ -113,12 +115,12 @@ do
 	## -m Min. read depth = 10 
 	## -q Min. quality = 20 (default)
 	VAR_START="$(date +%s)"
-	samtools mpileup -A -d 0 --reference $ref -Q 0 ${prefix}.trimmed.sorted.bam | ivar variants -m 10 -p ${prefix} -t 0.25 -r $ref -g /home/shenson/SARS-CoV/artic-ncov2019/primer_schemes/V3/MN908947.3.gff3 
+	samtools mpileup -A -d 0 --reference $ref -Q 0 ${prefix}.trimmed.sorted.bam | ivar variants -m 10 -p ${prefix} -t 0.25 -r $ref -g $ref_gff 
 	VAR_END="$(date +%s)"
 	echo "##### ivar variants ran in $((VAR_END-VAR_START))s."
 
 	echo "##### Genotyping #####" 
-	python3 /home/shenson/SARS-CoV/ncov2019-artic-nf/bin/type_vcf.py -i $prefix -y /home/shenson/SARS-CoV/ncov2019-artic-nf/typing/SARS-CoV-2.types.yaml -ov ${prefix}_typed.vcf -ot ${prefix}_typed.csv -os ${prefix}_typed.summary.csv -dp 10 -t ${prefix}.tsv /home/shenson/SARS-CoV/ncov2019-artic-nf/typing/MN908947.3.gff $ref
+	python3 type_vcf.py -i $prefix -y ${BASEDIR}/../db/SARS-CoV-2.types.yaml -ov ${prefix}_typed.vcf -ot ${prefix}_typed.csv -os ${prefix}_typed.summary.csv -dp 10 -t ${prefix}.tsv $ref_gff $ref
 	
 	cd $BASEDIR
 	sample_end="$(date +%s)"
